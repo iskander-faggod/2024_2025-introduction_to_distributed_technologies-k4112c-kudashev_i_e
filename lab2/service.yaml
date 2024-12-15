@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: lab2-frontend
+  name: lab2-frontend-service
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 31000
+      targetPort: 3000
+  selector:
+    app: lab2-frontend
+
