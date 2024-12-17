@@ -14,7 +14,7 @@ Lab: Lab1
 
 Date of create: 15.12.2024
 
-Date of finished: 15.12.2024
+Date of finished: 17.12.2024
 
 # Лабораторная работа №3 "Сертификаты и "секреты" в Minikube, безопасное хранение данных."""
 
