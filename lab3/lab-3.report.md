@@ -26,10 +26,10 @@ ConfigMap позволяет хранить конфигурационные д�
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: frontend-config
+  name: lab3-configmap
 data:
-  REACT_APP_USERNAME: "iskander"
-  REACT_APP_COMPANY_NAME: "itmo"
+  REACT_APP_USERNAME: "Iskander"
+  REACT_APP_COMPANY_NAME: "Itmo"
 ```
 
 
@@ -41,33 +41,82 @@ ReplicaSet обеспечивает поддержание заданного к
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: frontend-replicaset
+  name: lab3-replicaset
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: lab2-frontend
+      app: lab3-server
   template:
     metadata:
       labels:
-        app: lab2-frontend
+        app: lab3-server
     spec:
       containers:
-      - name: lab2-frontend
-        image: ifilyaninitmo/itdt-contained-frontend:master
-        ports:
-        - containerPort: 3000
-        env:
-        - name: REACT_APP_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: frontend-config
-              key: REACT_APP_USERNAME
-        - name: REACT_APP_COMPANY_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: frontend-config
-              key: REACT_APP_COMPANY_NAME
+        - name: lab3-server
+          image: ifilyaninitmo/itdt-contained-frontend:master
+          ports:
+            - containerPort: 3000
+          env:
+            - name: REACT_APP_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: lab3-configmap
+                  key: REACT_APP_USERNAME
+            - name: REACT_APP_COMPANY_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: lab3-configmap
+                  key: REACT_APP_COMPANY_NAME
+```
+
+### Создание Service
+
+объединяет поды с меткой app: lab3-server и обеспечивает доступ к ним через порт 80
+
+```bash
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab3-server-service
+spec:
+  selector:
+    app: lab3-server
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: NodePort
+
+```
+
+### Создание Ingress
+
+предоставляет доступ к сервису lab3-server-service по доменному имени lab3.local с использованием HTTPS.
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lab3-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - lab3.local
+      secretName: lab3-tls-secret
+  rules:
+    - host: lab3.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lab3-server-service
+                port:
+                  number: 80
+
 ```
 
 включить Ingress в Minikube
@@ -94,29 +143,6 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt
 secret/frontend-tls created
 ```
 
-создание ингресса
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: frontend-ingress
-spec:
-  tls:
-  - hosts:
-    - app.frontend
-    secretName: frontend-tls
-  rules:
-  - host: app.frontend
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: itdt-frontend-service
-            port:
-              number: 3000
 ```
 
 применяем файлы командой
@@ -132,5 +158,12 @@ kubectl apply -f /Users/iskander-faggod/Desktop/2024_2025-introduction_to_distri
 
 ```bash
 ❯ minikube ip
-192.168.49.2
 ```
+
+по /etc/hosts ставим ip minikube / app.local
+
+запускает и проверяем фронт ![alt text](image.png)
+
+проверяем сертификат
+
+![alt text](image-1.png)

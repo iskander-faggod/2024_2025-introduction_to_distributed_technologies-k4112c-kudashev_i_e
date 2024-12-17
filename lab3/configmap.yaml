@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: frontend-config
+  name: lab3-configmap
 data:
-  REACT_APP_USERNAME: "iskander"
-  REACT_APP_COMPANY_NAME: "itmo"
+  REACT_APP_USERNAME: "Iskander"
+  REACT_APP_COMPANY_NAME: "Itmo"
